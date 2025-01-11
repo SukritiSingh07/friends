@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Auth = () => {
   const [isSignIn, setIsSignIn] = useState(true); 
@@ -8,11 +9,12 @@ const Auth = () => {
   const [error, setError] = useState(""); // For error messages from backend
   const [isLoading, setIsLoading] = useState(false); // To show loading state
 
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSignIn) {
       try {
-        setIsLoading(true);
+        setIsLoading(true); 
         const response = await fetch("http://localhost:5000/signin", {
           method: "POST",
           headers: {
@@ -23,7 +25,8 @@ const Auth = () => {
 
         const data = await response.json();
         if (data.success) {
-          alert("Login successful!");
+          // alert("Login successful!");
+          navigate('/home', {state: {user: data}});
         } else {
           setError(data.message);
         }
@@ -50,7 +53,9 @@ const Auth = () => {
 
         const data = await response.json();
         if (data.success) {
-          alert("Sign Up successful!");
+          // alert("Sign Up successful!");
+          // console.log(data.user);
+          navigate('/home', {state: {user: data}});
         } else {
           setError(data.message);
         }
