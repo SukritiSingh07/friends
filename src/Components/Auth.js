@@ -5,17 +5,60 @@ const Auth = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState(""); // For error messages from backend
+  const [isLoading, setIsLoading] = useState(false); // To show loading state
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSignIn) {
-      console.log("Sign In Details:", { username, password });
+      try {
+        setIsLoading(true);
+        const response = await fetch("http://localhost:5000/signin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert("Login successful!");
+        } else {
+          setError(data.message);
+        }
+      } catch (err) {
+        setError("An error occurred during login");
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       if (password !== confirmPassword) {
-        alert("Passwords do not match!");
+        setError("Passwords do not match!");
         return;
       }
-      console.log("Sign Up Details:", { username, password });
+
+      try {
+        setIsLoading(true);
+        const response = await fetch("http://localhost:5000/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert("Sign Up successful!");
+        } else {
+          setError(data.message);
+        }
+      } catch (err) {
+        setError("An error occurred during sign-up");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -73,8 +116,10 @@ const Auth = () => {
           </div>
         )}
 
-        <button type="submit" style={styles.button}>
-          {isSignIn ? "Sign In" : "Sign Up"}
+        {error && <p style={styles.error}>{error}</p>}
+
+        <button type="submit" style={styles.button} disabled={isLoading}>
+          {isLoading ? "Loading..." : isSignIn ? "Sign In" : "Sign Up"}
         </button>
 
         <p style={styles.footer}>
@@ -131,8 +176,10 @@ const styles = {
     outline: "none",
     transition: "border-color 0.3s",
   },
-  inputFocus: {
-    borderColor: "#007bff",
+  error: {
+    color: "red",
+    fontSize: "14px",
+    marginBottom: "10px",
   },
   button: {
     width: "100%",
@@ -145,9 +192,6 @@ const styles = {
     cursor: "pointer",
     fontWeight: "bold",
     transition: "background-color 0.3s",
-  },
-  buttonHover: {
-    backgroundColor: "#0056b3",
   },
   footer: {
     marginTop: "20px",
