@@ -12,7 +12,11 @@ const userSchema = new mongoose.Schema({
   },
   friends: [
     {
-      type: String, 
+      username: {
+        type: String, 
+        required: true,
+      },
+      chat_id: { type: mongoose.Schema.Types.ObjectId, ref: "ChatRoom" },
     },
   ],
   pendingReq: [

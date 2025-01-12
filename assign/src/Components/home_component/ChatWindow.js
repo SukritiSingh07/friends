@@ -1,6 +1,73 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-const ChatWindow = ({ selectedUser, messages, newMessage, onSendMessage, setNewMessage }) => {
+const ChatWindow = ({ selectedUser,  messages, userId }) => {
+  const [chatMessages, setChatMessages] = useState(messages);
+  const [loading, setLoading] = useState(false);
+  const chatMessagesContainerRef = useRef(null);
+  const fetchMessagesInterval = useRef(null);
+  const [newMessage, setNewMessage] = useState([]);
+
+  // useEffect(() => {
+  //   if (chatMessagesContainerRef.current) {
+  //     chatMessagesContainerRef.current.scrollTop = chatMessagesContainerRef.current.scrollHeight;
+  //   }
+  // }, [chatMessages]);
+
+  const fetchMessages = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:5000/chat/chat-room/${selectedUser.chatRoomId}/messages`);
+      const data = await response.json();
+      if (response.ok) {
+        setChatMessages(data.messages); 
+      } else {
+        console.error("Error fetching messages:", data);
+      }
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (selectedUser) {
+      fetchMessages();
+
+      fetchMessagesInterval.current = setInterval(fetchMessages, 5000);
+    }
+
+    return () => {
+      if (fetchMessagesInterval.current) {
+        clearInterval(fetchMessagesInterval.current);
+      }
+    };
+  }, [selectedUser]);
+
+  const handleSendMessage = async () => {
+    if (newMessage.trim()) {
+      const response = await fetch("http://localhost:5000/chat/send-message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chatRoomId: selectedUser.chatRoomId,
+          senderId: userId,
+          message: newMessage,
+        }),
+      });
+
+      if (response.ok) {
+        const sentMessage = await response.json();
+        setChatMessages((prevMessages) => [...prevMessages, sentMessage]);
+        setNewMessage(""); 
+      } else {
+        const data = await response.json();
+        console.error("Failed to send message:", data);
+      }
+    }
+  };
+
   const styles = {
     chatWindow: {
       flex: 2,
@@ -28,6 +95,7 @@ const ChatWindow = ({ selectedUser, messages, newMessage, onSendMessage, setNewM
       padding: "10px",
       marginBottom: "10px",
       borderRadius: "5px",
+      maxHeight: "400px", 
     },
     chatInputContainer: {
       display: "flex",
@@ -56,6 +124,11 @@ const ChatWindow = ({ selectedUser, messages, newMessage, onSendMessage, setNewM
       marginTop: "20px",
       color: "#888",
     },
+    loading: {
+      textAlign: "center",
+      color: "#888",
+      marginTop: "20px",
+    },
   };
 
   return (
@@ -64,13 +137,22 @@ const ChatWindow = ({ selectedUser, messages, newMessage, onSendMessage, setNewM
       {selectedUser ? (
         <>
           <div style={styles.chatHeader}>Chat with {selectedUser.name}</div>
-          <div style={styles.chatMessages}>
-            {messages.map((msg, index) => (
-              <div key={index} style={styles.message}>
-                <strong>{msg.sender}: </strong>
-                {msg.text}
-              </div>
-            ))}
+          <div
+            style={styles.chatMessages}
+            ref={chatMessagesContainerRef}
+          >
+            {loading ? (
+              <div style={styles.loading}>Loading messages...</div>
+            ) : chatMessages.length > 0 ? (
+              chatMessages.map((msg, index) => (
+                <div key={index} style={styles.message}>
+                  <strong>{msg.sender.username}: </strong>
+                  {msg.message}
+                </div>
+              ))
+            ) : (
+              <div style={styles.placeholder}>No messages yet...</div>
+            )}
           </div>
           <div style={styles.chatInputContainer}>
             <input
@@ -80,7 +162,7 @@ const ChatWindow = ({ selectedUser, messages, newMessage, onSendMessage, setNewM
               onChange={(e) => setNewMessage(e.target.value)}
               style={styles.chatInput}
             />
-            <button onClick={onSendMessage} style={styles.button}>
+            <button onClick={handleSendMessage} style={styles.button}>
               Send
             </button>
           </div>

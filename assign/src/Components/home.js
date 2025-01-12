@@ -7,7 +7,9 @@ import { useLocation } from "react-router-dom";
 const Home = () => {
   const location = useLocation();
   const user = location.state?.user.user;
-
+  console.log(user);
+  const token=location.state?.token;
+  console.log(token);
   const [friends, setFriends] = useState(user?.friends || []);
   const [pendingReq, setPendingReq] = useState(user?.pendingReq || []);
   const [suggestedFriends, setSuggestedFriends] = useState([]); // For random suggestions
@@ -17,13 +19,13 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState(""); // Added this line for search
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch friend data and update state
   const fetchFriendData = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/friends/${user._id}`,{
+      const response = await fetch(`http://localhost:5000/friends/${user.id}`,{
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
           },
 
       });
@@ -42,10 +44,11 @@ const Home = () => {
   // Fetch random users and suggest friends (excluding current friends and pending requests)
   const fetchUserSuggestions = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/friends/users/${user._id}`, {
+      const response = await fetch(`http://localhost:5000/friends/users/${user.id}`, {
         method: "GET",  
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
           },
       });
   
@@ -87,15 +90,15 @@ const Home = () => {
       clearInterval(intervalId); // Cleanup on unmount
       clearInterval(intervalId2);
     };
-  }, [user._id]);
+  }, [user.id]);
 
   // Handle sending a friend request
   const handleSendRequest = async (friendUsername) => {
     try {
       const response = await fetch("http://localhost:5000/friends/sendRequest", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user._id, friendUsername }),
+        headers: { "Content-Type": "application/json",Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId: user.id, friendUsername }),
       });
 
       if (response.ok) {
@@ -114,8 +117,8 @@ const Home = () => {
     try {
       const response = await fetch("http://localhost:5000/friends/acceptRequest", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user._id, friendUsername }),
+        headers: { "Content-Type": "application/json",Authorization: `Bearer ${token}`, },
+        body: JSON.stringify({ userId: user.id, friendUsername }),
       });
 
       if (response.ok) {
@@ -134,8 +137,8 @@ const Home = () => {
     try {
       const response = await fetch("http://localhost:5000/friends/rejectRequest", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user._id, friendUsername }),
+        headers: { "Content-Type": "application/json",Authorization: `Bearer ${token}`, },
+        body: JSON.stringify({ userId: user.id, friendUsername }),
       });
 
       if (response.ok) {
@@ -155,8 +158,8 @@ const Home = () => {
     try {
       const response = await fetch("http://localhost:5000/friends/unfriend", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user._id, friendUsername }),
+        headers: { "Content-Type": "application/json",Authorization: `Bearer ${token}`, },
+        body: JSON.stringify({ userId: user.id, friendUsername }),
       });
 
       if (response.ok) {
@@ -176,20 +179,21 @@ const Home = () => {
   const handleSelectUser = (friendUsername) => {
     if (friends.includes(friendUsername)) {
       setSelectedUser(friendUsername);
-      setMessages([]); // Reset messages when a new friend is selected
+      setMessages([]); 
     } else {
       alert("You can only chat with friends.");
     }
   };
 
-  // Handle sending a message
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      setMessages([...messages, { sender: "You", text: newMessage }]);
-      setNewMessage("");
-    }
-  };
 
+  
+  // // Handle sending a message
+  // const handleSendMessage = () => {
+  //   if (newMessage.trim()) {
+  //     setMessages([...messages, { sender: "You", text: newMessage }]);
+  //     setNewMessage("");
+  //   }
+  // };
   const styles = {
     container: {
       fontFamily: "Arial, sans-serif",
@@ -233,9 +237,9 @@ const Home = () => {
         <ChatWindow
           selectedUser={selectedUser}
           messages={messages}
-          newMessage={newMessage}
-          onSendMessage={handleSendMessage}
-          setNewMessage={setNewMessage}
+          // newMessage={newMessage}
+          // onSendMessage={handleSendMessage}
+          // setNewMessage={setNewMessage}
         />
         <SendRequestPanel
           users={user?.allUsers}

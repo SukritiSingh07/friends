@@ -26,7 +26,7 @@ const Auth = () => {
         const data = await response.json();
         if (data.success) {
           // alert("Login successful!");
-          navigate('/home', {state: {user: data}});
+          navigate('/home', {state: {user: data, token: data.token}});
         } else {
           setError(data.message);
         }
@@ -53,9 +53,8 @@ const Auth = () => {
 
         const data = await response.json();
         if (data.success) {
-          // alert("Sign Up successful!");
-          // console.log(data.user);
-          navigate('/home', {state: {user: data}});
+          console.log(data);
+          navigate('/home', {state: {user: data, token: data.token}});
         } else {
           setError(data.message);
         }
