@@ -9,6 +9,7 @@ const MongoStore = require("connect-mongo");
 const authRoutes = require("./routes/auth");
 const friendsRoutes = require("./routes/friends");
 const jwt = require("jsonwebtoken");
+const chat=require("./routes/chat");
 
 const app = express();
 
@@ -63,6 +64,7 @@ const authenticateToken = (req, res, next) => {
 app.use("/", authRoutes); 
 
 app.use("/friends", authenticateToken, friendsRoutes);
+app.use("/chat", authenticateToken, chat);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

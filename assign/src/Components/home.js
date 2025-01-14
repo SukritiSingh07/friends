@@ -7,9 +7,10 @@ import { useLocation } from "react-router-dom";
 const Home = () => {
   const location = useLocation();
   const user = location.state?.user.user;
+  // console.log(user);
   console.log(user);
   const token=location.state?.token;
-  console.log(token);
+  // console.log(token);
   const [friends, setFriends] = useState(user?.friends || []);
   const [pendingReq, setPendingReq] = useState(user?.pendingReq || []);
   const [suggestedFriends, setSuggestedFriends] = useState([]); // For random suggestions
@@ -177,18 +178,50 @@ const Home = () => {
 
   // Handle selecting a friend for chat
   const handleSelectUser = (friendUsername) => {
-    if (friends.includes(friendUsername)) {
-      setSelectedUser(friendUsername);
-      setMessages([]); 
+    // Find the friend object in the array
+    const friend = friends.find(friend => friend.username === friendUsername);
+  
+    if (friend) {
+      // If the friend exists, set the selected user and clear messages
+      setSelectedUser({ username: friend.username, chatId: friend.chat_id
+      }); 
+      setMessages([]);
     } else {
+      // If the username is not found in friends
       alert("You can only chat with friends.");
     }
   };
+  
 
-
+  // const handleSelectUser = async (friendUsername) => {
+  //   setIsLoading(true);
+  //   try {
+  //     const response = await fetch(`http://localhost:5000/chat/${friendUsername}`, {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+  
+  //     if (response.ok) {
+  //       const messages = await response.json();
+  //       console.log("Messages:", messages);
+  //       setMessages(messages); // Update state with messages
+  //     } else {
+  //       console.error("Failed to fetch messages");
+  //     }
+  //   } catch (err) {
+  //     console.error("Error retrieving messages:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+  
   
   // // Handle sending a message
   // const handleSendMessage = () => {
+    
   //   if (newMessage.trim()) {
   //     setMessages([...messages, { sender: "You", text: newMessage }]);
   //     setNewMessage("");
@@ -230,7 +263,7 @@ const Home = () => {
       </nav>
       <div style={styles.layout}>
         <FriendList
-          friends={friends}
+          friends={friends.map(friend => friend.username)}
           onSelectUser={handleSelectUser}
           onUnfriend={handleUnfriend}
         />
@@ -240,6 +273,8 @@ const Home = () => {
           // newMessage={newMessage}
           // onSendMessage={handleSendMessage}
           // setNewMessage={setNewMessage}
+          user={user}
+          token={token}
         />
         <SendRequestPanel
           users={user?.allUsers}

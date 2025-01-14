@@ -20,7 +20,7 @@ async function getNonFriends(currentUser) {
 
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
-    console.log(id);
+    // console.log(id);
     try {
         const user = await User.findById(id);
         if (!user) {
@@ -177,9 +177,29 @@ router.get("/users/:id", async (req, res) => {
     }
 });
 
-// router.get("/chat/:username", (req,res)=>{
-//     const username=req.params;
+// router.get("/chat/:username", async (req, res) => {
+//     try {
+//       const { username } = req.params;
+//       const currentUser = req.user.username; 
+  
+//       const users = await User.find({ username: { $in: [currentUser, username] } });
+  
+//       if (users.length !== 2) {
+//         return res.status(404).json({ message: "Users not found" });
+//       }
+  
+//       const chatRoom = await ChatRoom.findOne({
+//         users: { $all: [users[0]._id, users[1]._id] },
+//       }).populate("messages.senderId", "username"); 
 
-// })
+//       if (!chatRoom) {
+//         return res.status(404).json({ message: "Chat room not found" });
+//       }
+//       res.status(200).json(chatRoom.messages);
+//     } catch (err) {
+//       console.error("Error retrieving messages:", err);
+//       res.status(500).json({ message: "Failed to retrieve messages" });
+//     }
+//   });
 
 module.exports = router;
